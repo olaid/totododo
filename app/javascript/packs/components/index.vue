@@ -14,9 +14,9 @@
     <!-- リスト表示部分 -->
     <div>
       <ul class="collection">
-        <li v-for="task in tasks" v-if="!task.is_done" class="collection-item">
+        <li v-for="task in nowTasks" :key="task.id" class="collection-item">
           <label>
-            <input type="checkbox" v-on:change.stop.prevent="doneTask(task.id)" />
+            <input type="checkbox" v-on:click="doneTask(task)" />
             <span>{{ task.name }}</span>
           </label>
         </li>
@@ -27,9 +27,9 @@
     <!-- 完了済みタスク一覧 -->
     <div id="finished-tasks" class="display_none">
       <ul class="collection">
-        <li v-for="task in tasks" v-if="task.is_done" class="collection-item">
+        <li v-for="task in finishedTasks" :key="task.id" class="collection-item">
           <label>
-            <input type="checkbox" v-on:change.stop.prevent="reTask(task.id)" checked="checked" />
+            <input type="checkbox" v-on:click="doneTask(task)" checked="checked" />
             <span>{{ task.name }}</span>
           </label>
         </li>
@@ -43,7 +43,8 @@
   export default {
     data: function () {
       return {
-        tasks: [],
+        finishedTasks: [],
+        nowTasks: [],
         newTask: ''
       }
     },
@@ -52,8 +53,13 @@
     },
     methods: {
       fetchTasks: function () {
-        axios.get('/api/tasks').then((response) => {
-          this.tasks = response.data.tasks;
+        axios.get('/api/tasks?is_done=0').then((response) => {
+          this.nowTasks = response.data.tasks;
+        }, (error) => {
+          console.log(error);
+        });
+        axios.get('/api/tasks?is_done=1').then((response) => {
+          this.finishedTasks = response.data.tasks;
         }, (error) => {
           console.log(error);
         });
@@ -65,21 +71,14 @@
         if (!this.newTask) return;
         
         axios.post('/api/tasks', { task: { name: this.newTask } }).then((response) => {
-          this.tasks.unshift(response.data.task);
+          this.nowTasks.unshift(response.data.task);
           this.newTask = '';
         }, (error) => {
           console.log(error);
         });
       },
-      doneTask: function (task_id) {
-        axios.put('/api/tasks/' + task_id, { task: { is_done: 1 } }).then((response) => {
-          this.fetchTasks();
-        }, (error) => {
-          console.log(error);
-        });
-      },
-      reTask: function (task_id) {
-        axios.put('/api/tasks/' + task_id, { task: { is_done: 0 } }).then((response) => {
+      doneTask: function (task) {
+        axios.put('/api/tasks/' + task.id, { task: { is_done: !task.is_done } }).then((response) => {
           this.fetchTasks();
         }, (error) => {
           console.log(error);

@@ -2,8 +2,7 @@ class Api::TasksController < ApplicationController
 
   # GET /tasks
   def index
-    # 後々のため、更新順で返します
-    @tasks = Task.order('updated_at DESC')
+    @tasks = Task.where("is_done=?", params[:is_done]).order('updated_at DESC')
   end
 
   # POST /tasks
