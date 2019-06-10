@@ -5,7 +5,7 @@ class Api::TasksController < ApplicationController
 
     @tasks = Task.find_by_sql(['
       with
-        p(
+        recursive p(
           id,name,is_done,next_task,created_at,updated_at,level
         ) 
       as
