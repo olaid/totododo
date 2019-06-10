@@ -13,34 +13,38 @@
     </div>
     <!-- リスト表示部分 -->
     <div>
-      <ul class="collection">
-        <li v-for="task in nowTasks" :key="task.id" class="collection-item">
+      <draggable v-model="nowTasks" elements="ul" class="collection" @end="dragEnd">
+        <li v-for="task in nowTasks" :key="task.id" :id="task.id" class="collection-item">
           <label>
             <input type="checkbox" v-on:click="doneTask(task)" />
             <span>{{ task.name }}</span>
           </label>
         </li>
-      </ul>
+      </draggable>
     </div>
     <!-- 完了済みタスク表示ボタン -->
     <div class="btn" v-on:click="displayFinishedTasks">Display finished tasks</div>
     <!-- 完了済みタスク一覧 -->
-    <div id="finished-tasks" class="display_none">
-      <ul class="collection">
-        <li v-for="task in finishedTasks" :key="task.id" class="collection-item">
+    <div id="finished-tasks" class="display_none ">
+      <draggable elements="ul" class="collection draggable" v-model="finishedTasks">
+        <li v-for="task in finishedTasks" :key="task.id" :id="task.id" class="collection-item">
           <label>
             <input type="checkbox" v-on:click="doneTask(task)" checked="checked" />
             <span>{{ task.name }}</span>
           </label>
         </li>
-      </ul>
+      </draggable>
     </div>
   </div>
 </template>
 <script>
   import axios from 'axios';
+  import draggable from 'vuedraggable';
 
   export default {
+    components: {
+      draggable,
+    },
     data: function () {
       return {
         finishedTasks: [],
@@ -83,6 +87,53 @@
         }, (error) => {
           console.log(error);
         });
+      },
+      dragEnd: function (e) {
+        //console.log(e)
+        //alert(e.item.id)
+        ////旧前置のタスクに次のタスクを紐付け
+        //console.log(this.nowTasks[e.oldIndex-1].id)
+        //console.log(this.nowTasks[e.newIndex].next_task )
+        //if( this.nowTasks[e.oldIndex-1] && this.nowTasks[e.oldIndex+1] ) {
+        //  axios.put('/api/tasks/' + this.nowTasks[e.oldIndex-1].id , { task: { next_task: this.nowTasks[e.newIndex].next_task } }).then((response) => {
+        //    this.fetchTasks();
+        //  }, (error) => {
+        //    console.log(error);
+        //  });
+        //}
+        ////今タスクに次のタスクを紐付け
+        ////nowTasks最後は完了タスクのはじめの値が入っている
+        //console.log(this.nowTasks[e.newIndex].id )
+        //console.log(this.nowTasks[e.newIndex-1].next_task )
+        //if( this.nowTasks[e.newIndex] ){
+        //  axios.put('/api/tasks/' + this.nowTasks[e.newIndex].id , { task: { next_task: this.nowTasks[e.newIndex-1].next_task } }).then((response) => {
+        //    this.fetchTasks();
+        //  }, (error) => {
+        //    console.log(error);
+        //  });
+        //}
+        ////現前置タスクに次タスクを紐付け
+        //console.log(this.nowTasks[e.newIndex-1].id)
+        //console.log(this.nowTasks[e.newIndex].id )
+        //if( this.nowTasks[e.newIndex-1] ){
+        //  axios.put('/api/tasks/' + this.nowTasks[e.newIndex-1].id , { task: { next_task: this.nowTasks[e.newIndex].id } }).then((response) => {
+        //    this.fetchTasks();
+        //  }, (error) => {
+        //    console.log(error);
+        //  });
+        //}
+        var new_bef
+        if( e.newIndex-1>=0 ){
+          new_bef = this.nowTasks[e.newIndex-1].id
+        }
+        else{
+          new_bef = -1
+        }
+        axios.put('/api/tasks/' + this.nowTasks[e.newIndex].id , { task: { new_bef_task: new_bef } }).then((response) => {
+          this.fetchTasks();
+        }, (error) => {
+          console.log(error);
+        });  
       }
     }
   }

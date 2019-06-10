@@ -4,4 +4,5 @@
 task<%= n %>:
   name:  <%= "task#{n}" %>
   is_done:  <%= n%2 %>
+  priority:  <%= n %>
 <% end %>
